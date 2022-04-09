@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
@@ -13,6 +17,22 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
+
+  async signIn(email: string, password: string): Promise<Token> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.hash);
+    if (!passwordMatch) {
+      throw new UnauthorizedException();
+    }
+
+    const token = await this.getToken(user);
+    await this.updateRefreshTokenHash(user, token.refreshToken);
+    return token;
+  }
 
   async signUp(
     email: string,
