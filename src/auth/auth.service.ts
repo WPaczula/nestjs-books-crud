@@ -9,6 +9,7 @@ import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from './interfaces';
 import { ConfigService } from '@nestjs/config';
+import { JWTPayload } from './interfaces/jwtPayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -53,6 +54,13 @@ export class AuthService {
     return token;
   }
 
+  async logout(userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRefreshToken: null },
+    });
+  }
+
   async updateRefreshTokenHash(user: User, refreshToken: string) {
     const hash = await this.hashData(refreshToken);
     await this.prisma.user.update({
@@ -70,7 +78,7 @@ export class AuthService {
   }
 
   async getToken(user: User): Promise<Token> {
-    const payload = {
+    const payload: JWTPayload = {
       userId: user.id,
       email: user.email,
     };
