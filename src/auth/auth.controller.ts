@@ -1,18 +1,22 @@
 import {
   Body,
   Controller,
+  Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { Authenticated } from './decorators/auth.guard';
-import { CurrentUser } from './decorators/currentUser.guard';
+import {
+  UseAuthenticationToken,
+  UseRefreshToken,
+  TokenUser,
+} from './decorators';
+import { Token } from './decorators/token.decorator';
 import { SignInUserDto, SignUpUserDto } from './dto';
 import { TokenDto } from './dto/token.dto';
-import { JWTPayload } from './interfaces/jwtPayload.interface';
+import { ITokenUser } from './interfaces/tokenUser.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -33,9 +37,23 @@ export class AuthController {
   }
 
   @Post('/logout')
-  @Authenticated()
+  @UseAuthenticationToken()
   @HttpCode(HttpStatus.OK)
-  async logout(@CurrentUser() user: JWTPayload) {
+  async logout(@TokenUser() user: ITokenUser) {
     await this.authService.logout(user.userId);
+  }
+
+  @Post('/refresh')
+  @UseRefreshToken()
+  @HttpCode(HttpStatus.CREATED)
+  async refresh(@TokenUser() user: ITokenUser, @Token() token: string) {
+    return this.authService.refreshToken(user.userId, token);
+  }
+
+  @Get('/')
+  @UseAuthenticationToken()
+  @HttpCode(HttpStatus.OK)
+  helloWorld(@TokenUser() user: ITokenUser) {
+    return `Hello ${user.email}`;
   }
 }

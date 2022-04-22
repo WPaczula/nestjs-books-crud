@@ -7,9 +7,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
-import { Token } from './interfaces';
+import { IToken } from './interfaces';
 import { ConfigService } from '@nestjs/config';
-import { JWTPayload } from './interfaces/jwtPayload.interface';
+import { ITokenUser } from './interfaces/tokenUser.interface';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signIn(email: string, password: string): Promise<Token> {
+  async signIn(email: string, password: string): Promise<IToken> {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
       throw new UnauthorizedException();
@@ -39,7 +39,7 @@ export class AuthService {
     email: string,
     password: string,
     confirmPassword: string,
-  ): Promise<Token> {
+  ): Promise<IToken> {
     if (password !== confirmPassword) {
       throw new BadRequestException(
         'Password and confirm password have to match',
@@ -61,7 +61,31 @@ export class AuthService {
     });
   }
 
-  async updateRefreshTokenHash(user: User, refreshToken: string) {
+  async refreshToken(userId: number, refreshToken: string): Promise<IToken> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    if ((await this.refreshTokenMatches(user, refreshToken)) !== true) {
+      throw new UnauthorizedException();
+    }
+
+    const newToken = await this.getToken(user);
+    await this.updateRefreshTokenHash(user, newToken.refreshToken);
+    return newToken;
+  }
+
+  private async refreshTokenMatches(user: User, refreshToken: string) {
+    return await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+  }
+
+  private async updateRefreshTokenHash(user: User, refreshToken: string) {
     const hash = await this.hashData(refreshToken);
     await this.prisma.user.update({
       where: {
@@ -73,12 +97,12 @@ export class AuthService {
     });
   }
 
-  hashData(data: string) {
+  private hashData(data: string) {
     return bcrypt.hash(data, 10);
   }
 
-  async getToken(user: User): Promise<Token> {
-    const payload: JWTPayload = {
+  private async getToken(user: User): Promise<IToken> {
+    const payload: ITokenUser = {
       userId: user.id,
       email: user.email,
     };
