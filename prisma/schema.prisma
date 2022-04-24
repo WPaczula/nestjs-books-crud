@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
+  id                 String   @id @default(uuid())
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt()
   email              String   @unique()
   hash               String
   hashedRefreshToken String?
+
   @@map("users")
 }
