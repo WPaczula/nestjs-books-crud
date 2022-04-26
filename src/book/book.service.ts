@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IBook } from './interfaces/book.interface';
 
@@ -29,5 +29,29 @@ export class BookService {
     });
 
     return books;
+  }
+
+  async updateReceivedAt(
+    id: string,
+    receivedAt: Date | null,
+    userId: string,
+  ): Promise<IBook> {
+    const book = await this.prismaService.book.findUnique({
+      where: {
+        id,
+      },
+      include: { user: true },
+    });
+
+    if (!book || book.userId !== userId) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const updatedBook = await this.prismaService.book.update({
+      where: { id },
+      data: { receivedAt },
+    });
+
+    return updatedBook;
   }
 }
