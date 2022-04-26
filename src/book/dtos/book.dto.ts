@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class BookDto {
   constructor(
@@ -6,11 +6,13 @@ export class BookDto {
     title: string,
     author: string,
     publishingHouse: string,
+    receivedAt: Date | null,
   ) {
     this.id = id;
     this.title = title;
     this.author = author;
     this.publishingHouse = publishingHouse;
+    this.receivedAt = receivedAt && receivedAt.toISOString();
   }
 
   @IsString()
@@ -24,4 +26,8 @@ export class BookDto {
 
   @IsString()
   publishingHouse: string;
+
+  @IsDateString()
+  @IsOptional()
+  receivedAt: string | null;
 }

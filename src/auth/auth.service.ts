@@ -82,7 +82,10 @@ export class AuthService {
   }
 
   private async refreshTokenMatches(user: User, refreshToken: string) {
-    return await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    return (
+      user.hashedRefreshToken &&
+      (await bcrypt.compare(refreshToken, user.hashedRefreshToken))
+    );
   }
 
   private async updateRefreshTokenHash(user: User, refreshToken: string) {

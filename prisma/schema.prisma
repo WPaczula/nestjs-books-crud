@@ -23,11 +23,14 @@ model User {
 }
 
 model Book {
-  id              String @id @default(uuid())
-  createdAt          DateTime @default(now())
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
   title           String
   author          String
   publishingHouse String
-  user            User   @relation(fields: [userId], references: [id])
+  receivedAt      DateTime?
+  user            User     @relation(fields: [userId], references: [id])
   userId          String
+
+  @@map("books")
 }

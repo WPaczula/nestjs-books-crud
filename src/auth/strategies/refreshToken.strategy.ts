@@ -22,7 +22,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   validate(request: Request, payload: any) {
     const refreshToken = request
       .get('authorization')
-      .replace('Bearer', '')
+      ?.replace('Bearer', '')
       .trim();
     return { ...payload, refreshToken };
   }

@@ -7,13 +7,14 @@ export class BookService {
   constructor(private prismaService: PrismaService) {}
 
   async createBook(
+    userId: string,
     title: string,
     author: string,
     publishingHouse: string,
-    userId: string,
+    receivedAt: Date | null = null,
   ): Promise<IBook> {
     const book = await this.prismaService.book.create({
-      data: { title, author, publishingHouse, userId },
+      data: { title, author, publishingHouse, userId, receivedAt },
     });
 
     return book;

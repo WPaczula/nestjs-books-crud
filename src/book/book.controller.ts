@@ -22,17 +22,24 @@ export class BookController {
     @Body() createBookDto: CreateBookDto,
     @TokenUser() user: ITokenUser,
   ) {
-    const { author, publishingHouse, title } = createBookDto;
+    const { author, publishingHouse, title, receivedAt } = createBookDto;
     const { userId } = user;
 
     const book = await this.bookService.createBook(
+      userId,
       title,
       author,
       publishingHouse,
-      userId,
+      receivedAt,
     );
 
-    return new BookDto(book.id, book.title, book.author, book.publishingHouse);
+    return new BookDto(
+      book.id,
+      book.title,
+      book.author,
+      book.publishingHouse,
+      book.receivedAt,
+    );
   }
 
   @Get('/')
@@ -40,7 +47,8 @@ export class BookController {
     const books = await this.bookService.getBooks(user.userId);
 
     return books.map(
-      (b) => new BookDto(b.id, b.title, b.author, b.publishingHouse),
+      (b) =>
+        new BookDto(b.id, b.title, b.author, b.publishingHouse, b.receivedAt),
     );
   }
 }
