@@ -1,4 +1,4 @@
 export interface ITokenUser {
-  userId: number;
+  userId: string;
   email: string;
 }
