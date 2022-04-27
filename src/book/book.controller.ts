@@ -59,12 +59,14 @@ export class BookController {
     @Body() patchBookDto: PatchBookDto,
     @TokenUser() user: ITokenUser,
   ): Promise<BookDto> {
-    const { receivedAt } = patchBookDto;
+    const { receivedAt, reviewed, readAt } = patchBookDto;
 
     const book = await this.bookService.updateReceivedAt(
       id,
-      receivedAt,
       user.userId,
+      receivedAt,
+      readAt,
+      reviewed,
     );
 
     return this.bookMapper.toDto(book);

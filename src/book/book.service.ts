@@ -43,8 +43,10 @@ export class BookService {
 
   async updateReceivedAt(
     id: string,
-    receivedAt: Date | null,
     userId: string,
+    receivedAt: Date | null,
+    readAt: Date | null,
+    reviewed: boolean,
   ): Promise<IBook> {
     const book = await this.prismaService.book.findUnique({
       where: {
@@ -59,7 +61,7 @@ export class BookService {
 
     const updatedBook = await this.prismaService.book.update({
       where: { id },
-      data: { receivedAt },
+      data: { receivedAt, readAt, reviewed },
     });
 
     return updatedBook;
