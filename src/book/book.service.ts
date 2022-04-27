@@ -30,11 +30,19 @@ export class BookService {
     return book;
   }
 
-  async getBooks(userId: string): Promise<Array<IBook>> {
+  async getBooks(
+    userId: string,
+    recievedFrom?: Date,
+    receivedTo?: Date,
+  ): Promise<Array<IBook>> {
     const books = await this.prismaService.book.findMany({
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ receivedAt: 'asc' }, { createdAt: 'asc' }],
       where: {
         userId,
+        receivedAt: {
+          gte: recievedFrom,
+          lte: receivedTo,
+        },
       },
     });
 

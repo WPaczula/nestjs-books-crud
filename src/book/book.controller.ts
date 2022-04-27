@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { TokenUser, UseAuthenticationToken } from 'src/auth/decorators';
 import { ITokenUser } from 'src/auth/interfaces';
@@ -47,8 +48,19 @@ export class BookController {
   }
 
   @Get('/')
-  async getBooks(@TokenUser() user: ITokenUser): Promise<Array<BookDto>> {
-    const books = await this.bookService.getBooks(user.userId);
+  async getBooks(
+    @TokenUser() user: ITokenUser,
+    @Query('receivedFrom') receivedFrom?: string,
+    @Query('receivedTo') receivedTo?: string,
+  ): Promise<Array<BookDto>> {
+    const receivedFromDate = receivedFrom ? new Date(receivedFrom) : undefined;
+    const receivedToDate = receivedTo ? new Date(receivedTo) : undefined;
+
+    const books = await this.bookService.getBooks(
+      user.userId,
+      receivedFromDate,
+      receivedToDate,
+    );
 
     return books.map(this.bookMapper.toDto);
   }
