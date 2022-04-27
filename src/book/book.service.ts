@@ -12,9 +12,19 @@ export class BookService {
     author: string,
     publishingHouse: string,
     receivedAt: Date | null = null,
+    readAt: Date | null = null,
+    reviewed = false,
   ): Promise<IBook> {
     const book = await this.prismaService.book.create({
-      data: { title, author, publishingHouse, userId, receivedAt },
+      data: {
+        title,
+        author,
+        publishingHouse,
+        userId,
+        receivedAt,
+        readAt,
+        reviewed,
+      },
     });
 
     return book;

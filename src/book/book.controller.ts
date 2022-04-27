@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { TokenUser, UseAuthenticationToken } from 'src/auth/decorators';
 import { ITokenUser } from 'src/auth/interfaces';
+import { BookMapper } from './book.mapper';
 import { BookService } from './book.service';
 import { BookDto, CreateBookDto } from './dtos';
 import { PatchBookDto } from './dtos/patchBook.dto';
@@ -17,15 +18,19 @@ import { PatchBookDto } from './dtos/patchBook.dto';
 @Controller('books')
 @UseAuthenticationToken()
 export class BookController {
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private bookMapper: BookMapper,
+  ) {}
 
   @Post('/')
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createBookDto: CreateBookDto,
     @TokenUser() user: ITokenUser,
-  ) {
-    const { author, publishingHouse, title, receivedAt } = createBookDto;
+  ): Promise<BookDto> {
+    const { author, publishingHouse, title, receivedAt, readAt, reviewed } =
+      createBookDto;
     const { userId } = user;
 
     const book = await this.bookService.createBook(
@@ -34,25 +39,18 @@ export class BookController {
       author,
       publishingHouse,
       receivedAt,
+      readAt,
+      reviewed,
     );
 
-    return new BookDto(
-      book.id,
-      book.title,
-      book.author,
-      book.publishingHouse,
-      book.receivedAt,
-    );
+    return this.bookMapper.toDto(book);
   }
 
   @Get('/')
-  async getBooks(@TokenUser() user: ITokenUser) {
+  async getBooks(@TokenUser() user: ITokenUser): Promise<Array<BookDto>> {
     const books = await this.bookService.getBooks(user.userId);
 
-    return books.map(
-      (b) =>
-        new BookDto(b.id, b.title, b.author, b.publishingHouse, b.receivedAt),
-    );
+    return books.map(this.bookMapper.toDto);
   }
 
   @Patch('/:id')
@@ -60,7 +58,7 @@ export class BookController {
     @Param('id') id: string,
     @Body() patchBookDto: PatchBookDto,
     @TokenUser() user: ITokenUser,
-  ) {
+  ): Promise<BookDto> {
     const { receivedAt } = patchBookDto;
 
     const book = await this.bookService.updateReceivedAt(
@@ -69,12 +67,6 @@ export class BookController {
       user.userId,
     );
 
-    return new BookDto(
-      book.id,
-      book.title,
-      book.author,
-      book.publishingHouse,
-      book.receivedAt,
-    );
+    return this.bookMapper.toDto(book);
   }
 }

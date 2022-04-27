@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
 
 export class CreateBookDto {
   @IsString()
@@ -15,4 +15,13 @@ export class CreateBookDto {
   @IsDate()
   @IsOptional()
   receivedAt?: Date;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  readAt?: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  reviewed?: boolean;
 }
